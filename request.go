@@ -3,6 +3,7 @@ package aria2go
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 
 	"github.com/google/uuid"
 )
@@ -48,6 +49,8 @@ func (b *BasicRequestBody) SetToken(token string) *BasicRequestBody {
 	return b
 }
 
+// Create 创建请求数据
+// 所有的请求链式调用末尾必须调用此函数来生成请求体数据
 func (b *BasicRequestBody) Create() (result []byte, id string, err error) {
 	if b.errorInfo != nil {
 		return nil, "", b.errorInfo
@@ -58,8 +61,8 @@ func (b *BasicRequestBody) Create() (result []byte, id string, err error) {
 	return
 }
 
-// Download 下载请求
-func (b *BasicRequestBody) Download(downloadSourceUri []string, option *DownloadRequestOption) *BasicRequestBody {
+// AddUri 下载文件请求
+func (b *BasicRequestBody) AddUri(downloadSourceUri []string, option *Option) *BasicRequestBody {
 	if b.errorInfo != nil {
 		return b
 	}
@@ -72,7 +75,21 @@ func (b *BasicRequestBody) Download(downloadSourceUri []string, option *Download
 	b.Method = "aria2.addUri"
 	b.Params = append(b.Params, downloadSourceUri)
 	if option != nil {
-		b.Params = append(b.Params, option)
+		availableOption := make(map[string]string)
+		
+		v := reflect.ValueOf(*option)
+		t := reflect.TypeOf(*option)
+		totalFieldNum := v.NumField()
+		for i := 0; i < totalFieldNum; i++ {
+			key := t.Field(i).Tag.Get("json")
+			value := v.Field(i).Interface().(string)
+
+			if value != "" && key != "" {
+				availableOption[key] = value
+			}
+		}
+
+		b.Params = append(b.Params, availableOption)
 	}
 	return b
 }
