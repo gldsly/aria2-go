@@ -114,6 +114,7 @@ type Option struct {
 	UriSelector                   string `json:"uri-selector"`
 	UseHead                       string `json:"use-head"`
 	UserAgent                     string `json:"user-agent"`
+	Position                      string `json:"position"`
 }
 
 // Response aria2 通常响应

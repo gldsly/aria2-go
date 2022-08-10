@@ -12,6 +12,28 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
+func TestAria2TorrentDownload(t *testing.T) {
+	testTorrentFile := "E:\\shiersan\\Downloads\\1.torrent"
+	request, id, err := NewRequest().SetToken(client.Token).AddTorrent(testTorrentFile, nil).Create()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	result, err := client.SendRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if result.Error != nil {
+		t.Error(fmt.Errorf("code: %d  message: %s", result.Error.Code, result.Error.Message))
+		return
+	}
+
+	fmt.Printf("task id: %s download result: %v", id, result)
+}
+
 func TestAria2Download(t *testing.T) {
 	downloadFileUri := "https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz"
 	downloadRequest, id, err := NewRequest().SetToken(client.Token).AddUri([]string{downloadFileUri}, &Option{

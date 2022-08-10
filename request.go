@@ -1,8 +1,11 @@
 package aria2go
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"os"
 	"reflect"
 
 	"github.com/google/uuid"
@@ -10,10 +13,10 @@ import (
 
 // BasicRequestBody 基础请求结构体
 type BasicRequestBody struct {
-	JSONRPC string        `json:"jsonrpc"`
-	ID      string        `json:"id"`
-	Method  string        `json:"method"`
-	Params  []interface{} `json:"params"`
+	JSONRPC   string        `json:"jsonrpc"`
+	ID        string        `json:"id"`
+	Method    string        `json:"method"`
+	Params    []interface{} `json:"params"`
 	errorInfo error
 }
 
@@ -33,8 +36,8 @@ func NewRequestWithToken(token string) *BasicRequestBody {
 		JSONRPC: DEFAULT_JSONRPC_VERSION,
 		ID:      DEFAULT_ID,
 		Method:  "",
-		Params:  []interface{}{
-			"token:"+token,
+		Params: []interface{}{
+			"token:" + token,
 		},
 	}
 }
@@ -61,22 +64,11 @@ func (b *BasicRequestBody) Create() (result []byte, id string, err error) {
 	return
 }
 
-// AddUri 下载文件请求
-func (b *BasicRequestBody) AddUri(downloadSourceUri []string, option *Option) *BasicRequestBody {
-	if b.errorInfo != nil {
-		return b
-	}
-
-	if len(downloadSourceUri) < 1 {
-		b.errorInfo = errors.New("download source uri is required")
-		return b
-	}
-
-	b.Method = "aria2.addUri"
-	b.Params = append(b.Params, downloadSourceUri)
+// addParamsOption 添加 option 数据到 params 中
+func (b *BasicRequestBody) addParamsOption(option *Option) {
 	if option != nil {
 		availableOption := make(map[string]string)
-		
+
 		v := reflect.ValueOf(*option)
 		t := reflect.TypeOf(*option)
 		totalFieldNum := v.NumField()
@@ -91,6 +83,47 @@ func (b *BasicRequestBody) AddUri(downloadSourceUri []string, option *Option) *B
 
 		b.Params = append(b.Params, availableOption)
 	}
+}
+
+// AddUri 下载文件请求
+func (b *BasicRequestBody) AddUri(downloadSourceUri []string, option *Option) *BasicRequestBody {
+	if b.errorInfo != nil {
+		return b
+	}
+
+	if len(downloadSourceUri) < 1 {
+		b.errorInfo = errors.New("download source uri is required")
+		return b
+	}
+
+	b.Method = "aria2.addUri"
+	b.Params = append(b.Params, downloadSourceUri)
+	b.addParamsOption(option)
+
+	return b
+}
+
+// AddTorrent 添加 bt 下载任务
+func (b *BasicRequestBody) AddTorrent(torrentFilePath string, option *Option) *BasicRequestBody {
+	if b.errorInfo != nil {
+		return b
+	}
+	torrentFile, err := os.Open(torrentFilePath)
+	if err != nil {
+		b.errorInfo = err
+		return b
+	}
+	fileContent, err := ioutil.ReadAll(torrentFile)
+	if err != nil {
+		b.errorInfo = err
+		return b
+	}
+	torrent := base64.StdEncoding.EncodeToString(fileContent)
+
+	b.Method = "aria2.addTorrent"
+	b.Params = append(b.Params, []string{torrent})
+	b.addParamsOption(option)
+
 	return b
 }
 
@@ -103,4 +136,3 @@ func (b *BasicRequestBody) Shutdown() *BasicRequestBody {
 	b.Method = "aria2.shutdown"
 	return b
 }
-
