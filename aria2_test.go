@@ -37,12 +37,12 @@ func TestTellStatus(t *testing.T) {
 
 	fmt.Println("replay id: ", replayID)
 	fmt.Printf("gid: %s 已下载: %s 总大小: %s 下载速度: %s 状态: %s 连接数: %s\n",
-			resp.Result.Gid, resp.Result.CompletedLength, resp.Result.TotalLength, resp.Result.DownloadSpeed,
-			resp.Result.Status, resp.Result.Connections)
-		for _, file := range resp.Result.Files {
-			fmt.Printf("\t 索引: %s 文件信息: %s 已下载: %s 总大小: %s \n", file.Index,
-				file.Path, file.CompletedLength, file.Length)
-		}
+		resp.Result.Gid, resp.Result.CompletedLength, resp.Result.TotalLength, resp.Result.DownloadSpeed,
+		resp.Result.Status, resp.Result.Connections)
+	for _, file := range resp.Result.Files {
+		fmt.Printf("\t 索引: %s 文件信息: %s 已下载: %s 总大小: %s \n", file.Index,
+			file.Path, file.CompletedLength, file.Length)
+	}
 }
 
 func TestTellActive(t *testing.T) {
@@ -82,7 +82,7 @@ func TestTellActive(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	// 1686b089f8a2e41f
-	request, replayID, err := NewRequestWithToken(client.Token).Remove("1686b089f8a2e41f", false).Create()
+	request, replayID, err := NewRequestWithToken(client.Token).Remove("c363ab43eea0182d", false).Create()
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -134,6 +134,58 @@ func TestPause(t *testing.T) {
 	fmt.Printf("replay id: %s download result: %v\n", replayID, result)
 }
 
+func TestPauseAll(t *testing.T) {
+	request, replayID, err := NewRequestWithToken(client.Token).PauseAll(false).Create()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	result, err := client.SendRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	resp := &Response{}
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if resp.Error != nil {
+		t.Error(fmt.Errorf("code: %d  message: %s", resp.Error.Code, resp.Error.Message))
+		return
+	}
+
+	fmt.Printf("replay id: %s download result: %v\n", replayID, string(result))
+}
+
+func TestUnpauseAll(t *testing.T) {
+	request, replayID, err := NewRequestWithToken(client.Token).UnpauseAll().Create()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	result, err := client.SendRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	resp := &Response{}
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if resp.Error != nil {
+		t.Error(fmt.Errorf("code: %d  message: %s", resp.Error.Code, resp.Error.Message))
+		return
+	}
+
+	fmt.Printf("replay id: %s download result: %v\n", replayID, string(result))
+}
+
 func TestTorrentDownload(t *testing.T) {
 	testTorrentFile := "/Users/yw/Downloads/123.torrent"
 	request, id, err := NewRequest().SetToken(client.Token).AddTorrent(testTorrentFile, nil).Create()
@@ -163,7 +215,8 @@ func TestTorrentDownload(t *testing.T) {
 }
 
 func TestDownload(t *testing.T) {
-	downloadFileUri := "https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz"
+	// downloadFileUri := "https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz"
+	downloadFileUri := "magnet:?xt=urn:btih:a9ff280d1418f98f9ad016e3a20acee1beb2de46&dn=zh-cn_windows_11_consumer_editions_version_21h2_updated_july_2022_x64_dvd_50ad4acf.iso&xl=5858816000"
 	downloadRequest, id, err := NewRequest().SetToken(client.Token).AddUri([]string{downloadFileUri}, &Option{
 		Out: "bbb.tar.gz",
 	}).Create()

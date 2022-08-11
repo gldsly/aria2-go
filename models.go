@@ -139,15 +139,17 @@ type TaskStatusData struct {
 }
 
 type TaskStatusDataFile struct {
-	CompletedLength string `json:"completedLength"`
-	Index           string `json:"index"`
-	Length          string `json:"length"`
-	Path            string `json:"path"`
-	Selected        string `json:"selected"`
-	Uris            []struct {
-		Status string `json:"status"`
-		Uri    string `json:"uri"`
-	} `json:"uris"`
+	CompletedLength string                    `json:"completedLength"`
+	Index           string                    `json:"index"`
+	Length          string                    `json:"length"`
+	Path            string                    `json:"path"`
+	Selected        string                    `json:"selected"`
+	Uris            []*TaskStatusDataFileUris `json:"uris"`
+}
+
+type TaskStatusDataFileUris struct {
+	Status string `json:"status"`
+	Uri    string `json:"uri"`
 }
 
 type TaskStatusDataBitTorrent struct {
@@ -158,6 +160,13 @@ type TaskStatusDataBitTorrent struct {
 		Name string `json:"name"`
 	} `json:"info"`
 	Mode string `json:"mode"`
+}
+
+type GetUrisResponse struct {
+	ID      string          `json:"id"`
+	JSONRPC string          `json:"jsonrpc"`
+	Result  *TaskStatusData `json:"result"`
+	Error   *ResponseError  `json:"error"`
 }
 
 // TellStatusResponse TellStatus 响应数据
