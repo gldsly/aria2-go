@@ -2,7 +2,6 @@ package aria2go
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -36,7 +35,7 @@ func NewAria2Client(token string, serverAddrPort ...string) *Aria2Client {
 }
 
 // SendRequest 发送请求
-func (a Aria2Client) SendRequest(body []byte) (result *Response, err error) {
+func (a Aria2Client) SendRequest(body []byte) (result []byte, err error) {
 	serverAddr := fmt.Sprintf("http://%s:%s/jsonrpc", a.Addr, a.Port)
 	request, err := http.NewRequest("POST", serverAddr, bytes.NewBuffer(body))
 	if err != nil {
@@ -55,9 +54,8 @@ func (a Aria2Client) SendRequest(body []byte) (result *Response, err error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(resultJsonData, &result)
-	if err != nil {
-		return nil, err
-	}
+	result = resultJsonData
+
 	return
 }
+

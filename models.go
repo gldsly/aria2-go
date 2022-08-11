@@ -117,6 +117,65 @@ type Option struct {
 	Position                      string `json:"position"`
 }
 
+// TaskStatusData TellStatus 返回值结构
+type TaskStatusData struct {
+	Gid             string                    `json:"gid"`
+	InfoHash        string                    `json:"infoHash"`
+	NumPieces       string                    `json:"numPieces"`
+	NumSeeders      string                    `json:"numSeeders"`
+	PieceLength     string                    `json:"pieceLength"`
+	Seeder          string                    `json:"seeder"`
+	Status          string                    `json:"status"`
+	TotalLength     string                    `json:"totalLength"`
+	CompletedLength string                    `json:"completedLength"`
+	DownloadSpeed   string                    `json:"downloadSpeed"`
+	UploadLength    string                    `json:"uploadLength"`
+	UploadSpeed     string                    `json:"uploadSpeed"`
+	Connections     string                    `json:"connections"`
+	Dir             string                    `json:"dir"`
+	Files           []*TaskStatusDataFile     `json:"files"`
+	BitField        string                    `json:"bitfield"`
+	BitTorrent      *TaskStatusDataBitTorrent `json:"bittorrent"`
+}
+
+type TaskStatusDataFile struct {
+	CompletedLength string `json:"completedLength"`
+	Index           string `json:"index"`
+	Length          string `json:"length"`
+	Path            string `json:"path"`
+	Selected        string `json:"selected"`
+	Uris            []struct {
+		Status string `json:"status"`
+		Uri    string `json:"uri"`
+	} `json:"uris"`
+}
+
+type TaskStatusDataBitTorrent struct {
+	AnnounceList [][]string `json:"announceList"`
+	Comment      string     `json:"comment"`
+	CreationDate int64      `json:"creationDate"`
+	Info         struct {
+		Name string `json:"name"`
+	} `json:"info"`
+	Mode string `json:"mode"`
+}
+
+// TellStatusResponse TellStatus 响应数据
+type TellStatusResponse struct {
+	ID      string          `json:"id"`
+	JSONRPC string          `json:"jsonrpc"`
+	Result  *TaskStatusData `json:"result"`
+	Error   *ResponseError  `json:"error"`
+}
+
+// TellActiveResponse TellActive 响应数据
+type TellActiveResponse struct {
+	ID      string            `json:"id"`
+	JSONRPC string            `json:"jsonrpc"`
+	Result  []*TaskStatusData `json:"result"`
+	Error   *ResponseError    `json:"error"`
+}
+
 // Response aria2 通常响应
 type Response struct {
 	ID      string         `json:"id"`
