@@ -231,6 +231,23 @@ func (r *RequestBody) TellActive(keys ...string) *RequestBody {
 	return r
 }
 
+// TellWaiting 查询等待执行的任务
+// offset 设置偏移量 limit 限制每次显示多少
+func (r *RequestBody) TellWaiting(offset, limit int, keys ...string) *RequestBody {
+	r.Method = "aria2.tellWaiting"
+	r.Params = append(r.Params, offset)
+	r.Params = append(r.Params, limit)
+	return r
+}
+
+// TellStopped 查询已经完成或者停止的任务
+func (r *RequestBody) TellStopped(offset, limit int, keys ...string) *RequestBody {
+	r.Method = "aria2.tellStopped"
+	r.Params = append(r.Params, offset)
+	r.Params = append(r.Params, limit)
+	return r
+}
+
 // Shutdown 关闭 aria2
 func (r *RequestBody) Shutdown() *RequestBody {
 	if r.errorInfo != nil {
@@ -247,5 +264,7 @@ func (r *RequestBody) GetUris(gid string) *RequestBody {
 		return r
 	}
 
+	r.Method = "aria2.getUris"
+	r.Params = append(r.Params, gid)
 	return r
 }

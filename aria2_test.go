@@ -13,6 +13,100 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
+func TestTellWaiting(t *testing.T) {
+	request, replayID, err := NewRequestWithToken(client.Token).TellWaiting(0, 20).Create()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	result, err := client.SendRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	resp := &TellTaskListResponse{}
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if resp.Error != nil {
+		t.Error(fmt.Errorf("code: %d  message: %s", resp.Error.Code, resp.Error.Message))
+		return
+	}
+	fmt.Println("replay id: ", replayID)
+	fmt.Println("等待开始的任务: ")
+	for _, task := range resp.Result {
+		fmt.Printf("gid: %s 已下载: %s 总大小: %s 下载速度: %s 状态: %s 连接数: %s\n",
+			task.Gid, task.CompletedLength, task.TotalLength, task.DownloadSpeed,
+			task.Status, task.Connections)
+		for _, file := range task.Files {
+			fmt.Printf("\t 索引: %s 文件信息: %s 已下载: %s 总大小: %s \n", file.Index,
+				file.Path, file.CompletedLength, file.Length)
+		}
+	}
+}
+
+func TestTellStopped(t *testing.T) {
+	request, replayID, err := NewRequestWithToken(client.Token).TellStopped(0, 20).Create()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	result, err := client.SendRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	resp := &TellTaskListResponse{}
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if resp.Error != nil {
+		t.Error(fmt.Errorf("code: %d  message: %s", resp.Error.Code, resp.Error.Message))
+		return
+	}
+
+	fmt.Println("replay id: ", replayID)
+	fmt.Println("停止的任务: ")
+	for _, task := range resp.Result {
+		fmt.Printf("gid: %s 已下载: %s 总大小: %s 下载速度: %s 状态: %s 连接数: %s\n",
+			task.Gid, task.CompletedLength, task.TotalLength, task.DownloadSpeed,
+			task.Status, task.Connections)
+		for _, file := range task.Files {
+			fmt.Printf("\t 索引: %s 文件信息: %s 已下载: %s 总大小: %s \n", file.Index,
+				file.Path, file.CompletedLength, file.Length)
+		}
+	}
+}
+
+func TestGetUris(t *testing.T) {
+	request, replayID, err := NewRequestWithToken(client.Token).GetUris("20bf613078e59fff").Create()
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	result, err := client.SendRequest(request)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+	resp := &GetUrisResponse{}
+	if err := json.Unmarshal(result, &resp); err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	if resp.Error != nil {
+		t.Error(fmt.Errorf("code: %d  message: %s", resp.Error.Code, resp.Error.Message))
+		return
+	}
+
+	fmt.Println(replayID, resp.Result)
+}
+
 func TestTellStatus(t *testing.T) {
 	request, replayID, err := NewRequestWithToken(client.Token).TellStatus("4c2e5dabceed5065").Create()
 	if err != nil {
@@ -57,7 +151,7 @@ func TestTellActive(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	resp := &TellActiveResponse{}
+	resp := &TellTaskListResponse{}
 	if err := json.Unmarshal(result, &resp); err != nil {
 		t.Error(err.Error())
 		return

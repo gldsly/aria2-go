@@ -163,10 +163,10 @@ type TaskStatusDataBitTorrent struct {
 }
 
 type GetUrisResponse struct {
-	ID      string          `json:"id"`
-	JSONRPC string          `json:"jsonrpc"`
-	Result  *TaskStatusData `json:"result"`
-	Error   *ResponseError  `json:"error"`
+	ID      string                  `json:"id"`
+	JSONRPC string                  `json:"jsonrpc"`
+	Result  []*TaskStatusDataFileUris `json:"result"`
+	Error   *ResponseError          `json:"error"`
 }
 
 // TellStatusResponse TellStatus 响应数据
@@ -177,8 +177,8 @@ type TellStatusResponse struct {
 	Error   *ResponseError  `json:"error"`
 }
 
-// TellActiveResponse TellActive 响应数据
-type TellActiveResponse struct {
+// TellTaskListResponse TellActive TellWaiting TellStopped 响应数据
+type TellTaskListResponse struct {
 	ID      string            `json:"id"`
 	JSONRPC string            `json:"jsonrpc"`
 	Result  []*TaskStatusData `json:"result"`
