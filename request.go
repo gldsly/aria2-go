@@ -103,7 +103,7 @@ func (b *BasicRequestBody) AddUri(downloadSourceUri []string, option *Option) *B
 	return b
 }
 
-// AddTorrent 添加 bt 下载任务
+// AddTorrent 添加本地 bt 文件创建下载任务
 func (b *BasicRequestBody) AddTorrent(torrentFilePath string, option *Option) *BasicRequestBody {
 	if b.errorInfo != nil {
 		return b
@@ -118,10 +118,15 @@ func (b *BasicRequestBody) AddTorrent(torrentFilePath string, option *Option) *B
 		b.errorInfo = err
 		return b
 	}
+	err = torrentFile.Close()
+	if err != nil {
+		b.errorInfo = err
+		return b
+	}
 	torrent := base64.StdEncoding.EncodeToString(fileContent)
 
 	b.Method = "aria2.addTorrent"
-	b.Params = append(b.Params, []string{torrent})
+	b.Params = append(b.Params, torrent)
 	b.addParamsOption(option)
 
 	return b

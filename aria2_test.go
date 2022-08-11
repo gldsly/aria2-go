@@ -13,7 +13,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestAria2TorrentDownload(t *testing.T) {
-	testTorrentFile := "E:\\shiersan\\Downloads\\1.torrent"
+	testTorrentFile := "/Users/yw/Downloads/123.torrent"
 	request, id, err := NewRequest().SetToken(client.Token).AddTorrent(testTorrentFile, nil).Create()
 	if err != nil {
 		t.Error(err.Error())
