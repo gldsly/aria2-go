@@ -162,39 +162,42 @@ type TaskStatusDataBitTorrent struct {
 	Mode string `json:"mode"`
 }
 
+type GetFilesResponse struct {
+	BasicModel
+	Result []*TaskStatusDataFile `json:"result"`
+}
+
 type GetUrisResponse struct {
-	ID      string                  `json:"id"`
-	JSONRPC string                  `json:"jsonrpc"`
-	Result  []*TaskStatusDataFileUris `json:"result"`
-	Error   *ResponseError          `json:"error"`
+	BasicModel
+	Result []*TaskStatusDataFileUris `json:"result"`
 }
 
 // TellStatusResponse TellStatus 响应数据
 type TellStatusResponse struct {
-	ID      string          `json:"id"`
-	JSONRPC string          `json:"jsonrpc"`
-	Result  *TaskStatusData `json:"result"`
-	Error   *ResponseError  `json:"error"`
+	BasicModel
+	Result *TaskStatusData `json:"result"`
 }
 
 // TellTaskListResponse TellActive TellWaiting TellStopped 响应数据
 type TellTaskListResponse struct {
-	ID      string            `json:"id"`
-	JSONRPC string            `json:"jsonrpc"`
-	Result  []*TaskStatusData `json:"result"`
-	Error   *ResponseError    `json:"error"`
+	BasicModel
+	Result []*TaskStatusData `json:"result"`
 }
 
 // Response aria2 通常响应
 type Response struct {
-	ID      string         `json:"id"`
-	JSONRPC string         `json:"jsonrpc"`
-	Result  string         `json:"result"`
-	Error   *ResponseError `json:"error"`
+	BasicModel
+	Result string `json:"result"`
 }
 
 // ResponseError Response 中 Error 字段
 type ResponseError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+type BasicModel struct {
+	ID      string         `json:"id"`
+	JSONRPC string         `json:"jsonrpc"`
+	Error   *ResponseError `json:"error"`
 }

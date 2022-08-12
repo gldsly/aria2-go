@@ -133,8 +133,6 @@ func (r *RequestBody) AddTorrent(torrentFilePath string, option *Option) *Reques
 }
 
 // Remove 删除下载记录
-// 如果是正在进行的下载任务,则会先停止在删除
-// 返回删除的任务 gid
 // 如果 force 为 true 则会直接删除.不会执行其他操作,例如联系 BitTorrent trackers 取消下载
 func (r *RequestBody) Remove(gid string, force bool) *RequestBody {
 	if r.errorInfo != nil {
@@ -151,7 +149,6 @@ func (r *RequestBody) Remove(gid string, force bool) *RequestBody {
 
 // Pause 暂停任务下载
 // 修改任务的状态为 paused
-// 返回结果为被暂停的任务 gid
 func (r *RequestBody) Pause(gid string, force bool) *RequestBody {
 	if r.errorInfo != nil {
 		return r
@@ -166,7 +163,6 @@ func (r *RequestBody) Pause(gid string, force bool) *RequestBody {
 }
 
 // PauseAll 暂停所有下载
-// 成功操作返回结果为 ok
 func (r *RequestBody) PauseAll(force bool) *RequestBody {
 	if r.errorInfo != nil {
 		return r
@@ -181,7 +177,6 @@ func (r *RequestBody) PauseAll(force bool) *RequestBody {
 
 // Unpause 取消任务暂停
 // 修改任务状态从 paused -> waiting
-// 操作成功返回: 任务 gid
 func (r *RequestBody) Unpause(gid string) *RequestBody {
 	if r.errorInfo != nil {
 		return r
@@ -192,7 +187,6 @@ func (r *RequestBody) Unpause(gid string) *RequestBody {
 }
 
 // UnpauseAll 取消所有任务暂停
-// 操作成功返回: ok
 func (r *RequestBody) UnpauseAll() *RequestBody {
 	if r.errorInfo != nil {
 		return r
@@ -268,3 +262,15 @@ func (r *RequestBody) GetUris(gid string) *RequestBody {
 	r.Params = append(r.Params, gid)
 	return r
 }
+
+func (r *RequestBody) GetFiles(gid string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+
+	r.Method = "aria2.getFiles"
+	r.Params = append(r.Params, gid)
+	return r
+}
+
+
