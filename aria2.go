@@ -3,7 +3,7 @@ package aria2go
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -49,7 +49,7 @@ func (a Aria2Client) SendRequest(body []byte) (result []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	resultJsonData, err := ioutil.ReadAll(response.Body)
+	resultJsonData, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +58,3 @@ func (a Aria2Client) SendRequest(body []byte) (result []byte, err error) {
 
 	return
 }
-

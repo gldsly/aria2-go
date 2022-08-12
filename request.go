@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 
@@ -113,7 +113,7 @@ func (r *RequestBody) AddTorrent(torrentFilePath string, option *Option) *Reques
 		r.errorInfo = err
 		return r
 	}
-	fileContent, err := ioutil.ReadAll(torrentFile)
+	fileContent, err := io.ReadAll(torrentFile)
 	if err != nil {
 		r.errorInfo = err
 		return r
@@ -272,5 +272,3 @@ func (r *RequestBody) GetFiles(gid string) *RequestBody {
 	r.Params = append(r.Params, gid)
 	return r
 }
-
-
