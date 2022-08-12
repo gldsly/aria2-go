@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -16,23 +15,29 @@ type Aria2Client struct {
 	Port  string
 }
 
-func NewAria2Client(token string, serverAddrPort ...string) *Aria2Client {
+type Aria2ClientOption func(*Aria2Client)
+
+func ClientSetAddr(addr string) Aria2ClientOption {
+	return func(client *Aria2Client) {
+		client.Addr = addr
+	}
+}
+
+func ClientSetPort(port string) Aria2ClientOption {
+	return func(client *Aria2Client) {
+		client.Port = port
+	}
+}
+
+func NewAria2Client(token string, opt ...Aria2ClientOption) *Aria2Client {
 	token = strings.TrimSpace(token)
-	var addr string
-	var port string
-	if len(serverAddrPort) != 2 {
-		addr = DEFAULT_ARIA2_ADDR
-		port = DEFAULT_ARIA2_PORT
-	} else {
-		addr = serverAddrPort[0]
-		port = serverAddrPort[1]
+	client := &Aria2Client{Token: token, Addr: DEFAULT_ARIA2_ADDR, Port: DEFAULT_ARIA2_PORT}
+
+	for _, obj := range opt {
+		obj(client)
 	}
-	log.Printf("[aria2go] server addr: http://%s:%s/jsonrpc", DEFAULT_ARIA2_ADDR, DEFAULT_ARIA2_PORT)
-	return &Aria2Client{
-		Token: token,
-		Addr:  addr,
-		Port:  port,
-	}
+
+	return client
 }
 
 // SendRequest 发送请求
@@ -126,4 +131,3 @@ func (a Aria2Client) QueryTaskStatus(gid string) (status *TaskStatusData, err er
 	}
 	return resp.Result, nil
 }
-

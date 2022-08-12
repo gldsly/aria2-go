@@ -9,7 +9,7 @@ import (
 var client *Aria2Client
 
 func TestMain(m *testing.M) {
-	client = NewAria2Client("thanks")
+	client = NewAria2Client("thanks", ClientSetAddr("127.0.0.1"))
 	m.Run()
 }
 
