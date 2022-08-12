@@ -42,6 +42,7 @@ func (a Aria2Client) SendRequest(body []byte) (result []byte, err error) {
 		return nil, err
 	}
 	request.Header.Set("ContentType", DEFAULT_CONTENT_TYPE)
+	request.Header.Set("Accept-Charset", "utf-8")
 
 	client := &http.Client{}
 

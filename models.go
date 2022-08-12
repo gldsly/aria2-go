@@ -1,6 +1,6 @@
 package aria2go
 
-// Option 请求参数配置
+// Option(InputFile) 请求参数配置
 // 参数参考如下官网配置说明
 // http://aria2.github.io/manual/en/html/aria2c.html#input-file
 type Option struct {
@@ -115,6 +115,26 @@ type Option struct {
 	UseHead                       string `json:"use-head"`
 	UserAgent                     string `json:"user-agent"`
 	Position                      string `json:"position"`
+}
+
+type MultiCallParamsItem struct {
+	MethodName string        `json:"methodName"`
+	Params     []interface{} `json:"params"`
+}
+
+// GlobalStat 全局状态
+type GlobalStatData struct {
+	DownloadSpeed   string `json:"downloadSpeed"`
+	UploadSpeed     string `json:"uploadSpeed"`
+	NumActive       string `json:"numActive"`
+	NumWaiting      string `json:"numWaiting"`
+	NumStopped      string `json:"numStopped"`
+	NumStoppedTotal string `json:"numStoppedTotal"`
+}
+
+type GetVersionResponse struct {
+	Version         string   `json:"version"`
+	EnabledFeatures []string `json:"enabledFeatures"`
 }
 
 // TaskStatusData TellStatus 返回值结构

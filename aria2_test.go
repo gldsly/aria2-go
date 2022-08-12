@@ -329,7 +329,7 @@ func TestDownload(t *testing.T) {
 }
 
 func TestShutdown(t *testing.T) {
-	shutdownRequest, id, err := NewRequestWithToken(client.Token).Shutdown().Create()
+	shutdownRequest, id, err := NewRequestWithToken(client.Token).Shutdown(false).Create()
 	if err != nil {
 		t.Error(err.Error())
 		return

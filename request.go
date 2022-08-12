@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -231,6 +232,9 @@ func (r *RequestBody) TellWaiting(offset, limit int, keys ...string) *RequestBod
 	r.Method = "aria2.tellWaiting"
 	r.Params = append(r.Params, offset)
 	r.Params = append(r.Params, limit)
+	if len(keys) > 0 {
+		r.Params = append(r.Params, keys)
+	}
 	return r
 }
 
@@ -239,16 +243,9 @@ func (r *RequestBody) TellStopped(offset, limit int, keys ...string) *RequestBod
 	r.Method = "aria2.tellStopped"
 	r.Params = append(r.Params, offset)
 	r.Params = append(r.Params, limit)
-	return r
-}
-
-// Shutdown 关闭 aria2
-func (r *RequestBody) Shutdown() *RequestBody {
-	if r.errorInfo != nil {
-		return r
+	if len(keys) > 0 {
+		r.Params = append(r.Params, keys)
 	}
-
-	r.Method = "aria2.shutdown"
 	return r
 }
 
@@ -270,5 +267,261 @@ func (r *RequestBody) GetFiles(gid string) *RequestBody {
 
 	r.Method = "aria2.getFiles"
 	r.Params = append(r.Params, gid)
+	return r
+}
+
+func (r *RequestBody) GetPeers(gid string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getPeers"
+	r.Params = append(r.Params, gid)
+	return r
+}
+
+func (r *RequestBody) GetServers(gid string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getServers"
+	r.Params = append(r.Params, gid)
+	return r
+}
+
+func (r *RequestBody) ChangePosition(gid string, pos int, opt PositionOpt) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.changePosition"
+	r.Params = append(r.Params, gid)
+	r.Params = append(r.Params, pos)
+	r.Params = append(r.Params, opt)
+	return r
+}
+
+func (r *RequestBody) ChangeUri(gid string, fileIndex int, delUris, addUris []string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	if fileIndex == 0 {
+		r.errorInfo = errors.New("fileIndex is 1-based")
+		return r
+	}
+	r.Method = "aria2.changeUri"
+	r.Params = append(r.Params, gid)
+	r.Params = append(r.Params, fileIndex)
+	r.Params = append(r.Params, delUris)
+	r.Params = append(r.Params, addUris)
+	return r
+}
+
+// GetOption 获取任务配置参数
+func (r *RequestBody) GetOption(gid string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getOption"
+	r.Params = append(r.Params, gid)
+	return r
+}
+
+// ChangeOption 修改任务参数
+// Option 中以下参数不能使用
+//
+//	dry-run
+//	metalink-base-uri
+//	parameterized-uri
+//	pause
+//	piece-length
+//	rpc-save-upload-metadata
+//
+// 除了下面的参数外,更改其他参数会使任务重新启动
+// 重启由 aria2 自行执行,不需要用户主动操作
+//
+//	bt-max-peers
+//	bt-request-peer-speed-limit
+//	bt-remove-unselected-file
+//	force-save
+//	max-download-limit
+//	max-upload-limit
+func (r *RequestBody) ChangeOption(gid string, opts *Option) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.changeOption"
+	r.Params = append(r.Params, gid)
+	r.addParamsOption(opts)
+	return r
+}
+
+func (r *RequestBody) GetGlobalOption() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getGlobalOption"
+	return r
+}
+
+// ChangeGlobalOption 动态更新全局参数设置
+// 以下选项可用
+//
+//	bt-max-open-files
+//	download-result
+//	keep-unfinished-download-result
+//	log
+//	log-level
+//	max-concurrent-downloads
+//	max-download-result
+//	max-overall-download-limit
+//	max-overall-upload-limit
+//	optimize-concurrent-downloads
+//	save-cookies
+//	save-session
+//	server-stat-of
+
+// log 参数可以动态的指定输出文件或者关闭日志
+//
+// Option 中的选项除以下参数外都可以用
+//
+//	checksum
+//	index-out
+//	out
+//	pause
+//	select-file
+//
+// @otherOpt: 限制传递一个 map[string]string 用于设置 Option 中没有的参数
+func (r *RequestBody) ChangeGlobalOption(opts *Option, otherOpt ...map[string]string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.changeGlobalOption"
+	r.addParamsOption(opts)
+
+	if opts == nil && len(otherOpt) != 0 {
+		r.Params = append(r.Params, make(map[string]string))
+	}
+
+	optsMap, ok := r.Params[1].(map[string]string)
+	if !ok {
+		r.errorInfo = errors.New("assert params type error")
+		return r
+	}
+
+	if len(otherOpt) == 1 {
+		for key, val := range otherOpt[0] {
+			if strings.TrimSpace(val) != "" {
+				optsMap[key] = val
+			}
+		}
+	} else {
+		r.errorInfo = errors.New("otherOpt limit 1 map data")
+		return r
+	}
+	return r
+}
+
+func (r *RequestBody) GetGlobalStat() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getGlobalStat"
+	return r
+}
+
+// PurgeDownloadResult  删除 已完成/错误/已移除 的任务
+func (r *RequestBody) PurgeDownloadResult() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.purgeDownloadResult"
+	return r
+}
+
+// RemoveDownloadResult 删除指定 已完成/错误/已移除 的任务
+func (r *RequestBody) RemoveDownloadResult(gid string) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.removeDownloadResult"
+	r.Params = append(r.Params, gid)
+	return r
+}
+
+// GetVersion  获取 aria2 的版本和已启用功能
+func (r *RequestBody) GetVersion() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getVersion"
+	return r
+}
+
+func (r *RequestBody) GetSessionInfo() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.getSessionInfo"
+	return r
+}
+
+// Shutdown 关闭 aria2
+func (r *RequestBody) Shutdown(force bool) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	if force {
+		r.Method = "aria2.forceShutdown"
+	} else {
+		r.Method = "aria2.shutdown"
+	}
+	return r
+}
+
+func (r *RequestBody) SaveSession() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "aria2.saveSession"
+	return r
+}
+
+// MultiCall 同时发送多个请求
+func (r *RequestBody) MultiCall(requests ...*RequestBody) *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "system.multicall"
+	if len(requests) < 1 {
+		r.errorInfo = errors.New("number of request must be gt than eq to 1")
+		return r
+	}
+
+	for _, item := range requests {
+		if item.errorInfo != nil {
+			r.errorInfo = item.errorInfo
+			return r
+		}
+		tmp := &MultiCallParamsItem{
+			MethodName: item.Method,
+			Params:     item.Params,
+		}
+		r.Params = append(r.Params, tmp)
+	}
+	return r
+}
+
+func (r *RequestBody) ListMethods() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "system.listMethods"
+	return r
+}
+
+func (r *RequestBody) ListNotifications() *RequestBody {
+	if r.errorInfo != nil {
+		return r
+	}
+	r.Method = "system.listNotifications"
 	return r
 }
