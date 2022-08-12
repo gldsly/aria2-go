@@ -6,6 +6,10 @@
 
 预置常用的操作方法
 
+```bash
+go get -u github.com/gldsly/aria2-go
+```
+
 下载文件
 ```go
 package main
