@@ -62,7 +62,6 @@ func (a Aria2Client) SendRequest(body []byte) (result []byte, err error) {
 	}
 
 	result = resultJsonData
-
 	return
 }
 
@@ -127,7 +126,233 @@ func (a Aria2Client) QueryTaskStatus(gid string) (status *TaskStatusData, err er
 	}
 
 	if resp.Error != nil {
-		return nil, err
+		return nil, fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
 	}
 	return resp.Result, nil
+}
+
+func (a Aria2Client) QueryWaitingTask(offset int, limit int) (tasks []*TaskStatusData, err error) {
+	request, _, err := NewRequestWithToken(a.Token).TellWaiting(offset, limit).Create()
+	if err != nil {
+		return nil, err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	resp := &TellTaskListResponse{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Error != nil {
+		return nil, fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return resp.Result, nil
+}
+
+func (a Aria2Client) QueryStoppedTask(offset int, limit int) (tasks []*TaskStatusData, err error) {
+	request, _, err := NewRequestWithToken(a.Token).TellStopped(offset, limit).Create()
+	if err != nil {
+		return nil, err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	resp := &TellTaskListResponse{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Error != nil {
+		return nil, fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return resp.Result, nil
+}
+
+func (a Aria2Client) QueryDownloadingTask() (tasks []*TaskStatusData, err error) {
+	request, _, err := NewRequestWithToken(a.Token).TellActive().Create()
+	if err != nil {
+		return nil, err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return nil, err
+	}
+	resp := &TellTaskListResponse{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Error != nil {
+		return nil, fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return resp.Result, nil
+}
+
+func (a Aria2Client) QueryNotDownloadingTask() (tasks []*TaskStatusData, err error) {
+	offset := 0
+	limit := 50
+	count := 1
+	waitingTasks := make([]*TaskStatusData, 0)
+	stoppedTasks := make([]*TaskStatusData, 0)
+
+	for {
+		waitingReq := NewRequestWithToken(a.Token).TellWaiting(offset, limit)
+		stoppedReq := NewRequestWithToken(a.Token).TellStopped(offset, limit)
+		request, _, err := NewRequest().MultiCall(waitingReq, stoppedReq).Create()
+		if err != nil {
+			return nil, err
+		}
+		result, err := a.SendRequest(request)
+		if err != nil {
+			return nil, err
+		}
+		resp := &QueryNotDownloadingTaskResponse{}
+		err = json.Unmarshal(result, &resp)
+		if err != nil {
+			return nil, err
+		}
+		if resp.Error != nil {
+			return nil, fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+		}
+
+		waitingTaskRes := resp.Result[0][0]
+		stoppedTaskRes := resp.Result[1][0]
+
+		if len(waitingTaskRes) == 0 && len(stoppedTaskRes) == 0 {
+			break
+		}
+		waitingTasks = append(waitingTasks, waitingTaskRes...)
+		stoppedTasks = append(stoppedTasks, stoppedTaskRes...)
+		count += 1
+		offset = count * limit
+	}
+
+	allTasks := make([]*TaskStatusData, 0, len(waitingTasks)+len(stoppedTasks))
+	allTasks = append(allTasks, waitingTasks...)
+	allTasks = append(allTasks, stoppedTasks...)
+
+	return allTasks, nil
+}
+
+func (a Aria2Client) Pause(gid string) error {
+	request, _, err := NewRequestWithToken(a.Token).Pause(gid, false).Create()
+	if err != nil {
+		return err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return err
+	}
+	resp := &Response{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return err
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return nil
+}
+
+func (a Aria2Client) Unpause(gid string) error {
+	request, _, err := NewRequestWithToken(a.Token).Unpause(gid).Create()
+	if err != nil {
+		return err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return err
+	}
+	resp := &Response{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return err
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return nil
+}
+
+func (a Aria2Client) PauseAll(gid string) error {
+	request, _, err := NewRequestWithToken(a.Token).PauseAll(false).Create()
+	if err != nil {
+		return err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return err
+	}
+	resp := &Response{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return err
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return nil
+}
+
+func (a Aria2Client) UnpauseAll(gid string) error {
+	request, _, err := NewRequestWithToken(a.Token).UnpauseAll().Create()
+	if err != nil {
+		return err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return err
+	}
+	resp := &Response{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return err
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return nil
+}
+
+func (a Aria2Client) RemoveTask(gid string) error {
+	request, _, err := NewRequestWithToken(a.Token).RemoveDownloadResult(gid).Create()
+	if err != nil {
+		return err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return err
+	}
+	resp := &Response{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return err
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return nil
+}
+
+func (a Aria2Client) RemoveAllTask() error {
+	request, _, err := NewRequestWithToken(a.Token).PurgeDownloadResult().Create()
+	if err != nil {
+		return err
+	}
+	requestResult, err := a.SendRequest(request)
+	if err != nil {
+		return err
+	}
+	resp := &Response{}
+	if err := json.Unmarshal(requestResult, &resp); err != nil {
+		return err
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("code: %d message: %s", resp.Error.Code, resp.Error.Message)
+	}
+	return nil
 }

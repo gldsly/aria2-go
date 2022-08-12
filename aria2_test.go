@@ -13,6 +13,15 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
+func TestQueryNotDownloadingTask(t *testing.T) {
+	res, err := client.QueryNotDownloadingTask()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(res)
+}
+
 func TestTellWaiting(t *testing.T) {
 	request, replayID, err := NewRequestWithToken(client.Token).TellWaiting(0, 20).Create()
 	if err != nil {
@@ -176,7 +185,7 @@ func TestTellActive(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	// 1686b089f8a2e41f
-	request, replayID, err := NewRequestWithToken(client.Token).Remove("c363ab43eea0182d", false).Create()
+	request, replayID, err := NewRequestWithToken(client.Token).Remove("34bcd3", false).Create()
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -310,7 +319,7 @@ func TestTorrentDownload(t *testing.T) {
 
 func TestDownload(t *testing.T) {
 	// downloadFileUri := "https://dl.google.com/go/go1.18.4.linux-amd64.tar.gz"
-	downloadFileUri := "magnet:?xt=urn:btih:a9ff280d1418f98f9ad016e3a20acee1beb2de46&dn=zh-cn_windows_11_consumer_editions_version_21h2_updated_july_2022_x64_dvd_50ad4acf.iso&xl=5858816000"
+	downloadFileUri := "https://dldir1.qq.com/music/clntupate/QQMusicSetup.exe"
 	downloadRequest, id, err := NewRequest().SetToken(client.Token).AddUri([]string{downloadFileUri}, &Option{
 		Out: "bbb.tar.gz",
 	}).Create()

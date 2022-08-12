@@ -204,6 +204,11 @@ type TellTaskListResponse struct {
 	Result []*TaskStatusData `json:"result"`
 }
 
+type QueryNotDownloadingTaskResponse struct {
+	BasicModel
+	Result [][][]*TaskStatusData `json:"result"`
+}
+
 // Response aria2 通常响应
 type Response struct {
 	BasicModel

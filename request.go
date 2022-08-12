@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"reflect"
@@ -490,23 +491,48 @@ func (r *RequestBody) MultiCall(requests ...*RequestBody) *RequestBody {
 	if r.errorInfo != nil {
 		return r
 	}
+	if len(r.Params) >= 1 {
+		if val, ok := r.Params[0].(string); ok {
+			if strings.HasPrefix(val, "token") {
+				r.errorInfo = errors.New("system.multicall method cannot set token")
+				return r
+			}
+		}
+	}
+
 	r.Method = "system.multicall"
 	if len(requests) < 1 {
 		r.errorInfo = errors.New("number of request must be gt than eq to 1")
 		return r
 	}
 
+	allRequest := make([]*MultiCallParamsItem, 0)
 	for _, item := range requests {
 		if item.errorInfo != nil {
 			r.errorInfo = item.errorInfo
 			return r
 		}
+
+		// check request token
+		if len(item.Params) >= 1 {
+			if val, ok := item.Params[0].(string); ok {
+				if !strings.HasPrefix(val, "token:") {
+					r.errorInfo = fmt.Errorf("%s token format error", item.Method)
+					return r
+				}
+			} else {
+				r.errorInfo = fmt.Errorf("%s token is empty", item.Method)
+				return r
+			}
+		}
+
 		tmp := &MultiCallParamsItem{
 			MethodName: item.Method,
 			Params:     item.Params,
 		}
-		r.Params = append(r.Params, tmp)
+		allRequest = append(allRequest, tmp)
 	}
+	r.Params = append(r.Params, allRequest)
 	return r
 }
 

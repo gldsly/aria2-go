@@ -9,8 +9,7 @@
 ```bash
 go get -u github.com/gldsly/aria2-go
 ```
-
-下载文件
+示例：
 ```go
 package main
 
